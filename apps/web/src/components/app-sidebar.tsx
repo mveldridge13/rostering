@@ -62,9 +62,9 @@ export function AppSidebar({ rosterBadge }: { rosterBadge?: React.ReactNode }) {
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-3 pt-5 pb-4">
         <Link href="/" className="flex items-center gap-2.5 px-1">
-          <WattleMark className="size-8 shrink-0 text-primary" />
+          <BrandMark className="size-8 shrink-0 text-primary" />
           <div className="grid leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="text-[1.05rem] font-bold tracking-tight">Wattle Roster</span>
+            <span className="text-[1.05rem] font-bold tracking-tight">Roster</span>
             <span className="text-[0.7rem] text-muted-foreground">Smart rosters. Happier rooms.</span>
           </div>
         </Link>
@@ -104,8 +104,8 @@ export function AppSidebar({ rosterBadge }: { rosterBadge?: React.ReactNode }) {
   )
 }
 
-/** Placeholder brand mark: a wattle sprig. */
-function WattleMark({ className }: { className?: string }) {
+/** Placeholder brand mark: a sprig. */
+function BrandMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden>
       <path d="M16 29V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

@@ -110,17 +110,17 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <pre className="overflow-x-auto rounded-lg bg-muted p-4 font-mono text-xs leading-relaxed">
-{`<script src="https://embed.wattleroster.app/v1.js"></script>
-<wattle-roster
+{`<script src="https://embed.example.com/v1.js"></script>
+<roster-embed
   centre="${centre?.serviceApprovalNumber ?? "SE-00000000"}"
   view="week"
   token="{{ session_token }}">
-</wattle-roster>`}
+</roster-embed>`}
                 </pre>
                 <NotConnected needs="API keys and the embeddable component (Phase 4). The values below are placeholders." className="self-start" />
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field id="client" label="Client ID" defaultValue="wr_live_7f3a91c2" mono readOnly />
-                  <Field id="webhook" label="Webhook endpoint" defaultValue="https://api.wattleroster.app/hooks/ccs" mono readOnly />
+                  <Field id="client" label="Client ID" defaultValue="live_7f3a91c2" mono readOnly />
+                  <Field id="webhook" label="Webhook endpoint" defaultValue="https://api.example.com/hooks/ccs" mono readOnly />
                 </div>
               </CardContent>
             </Card>

@@ -23,8 +23,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Wattle Roster",
-    template: "%s · Wattle Roster",
+    default: "Roster",
+    template: "%s · Roster",
   },
   description: "Ratio-aware rostering for early learning centres.",
 }
