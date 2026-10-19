@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { CheckIcon, PlugZapIcon, PlusIcon, ShieldCheckIcon } from "lucide-react"
+import { CheckIcon, HousePlusIcon, PlugZapIcon, ShieldCheckIcon } from "lucide-react"
 
 import { Field, Notice, Section } from "@/components/form-parts"
 import { NotConnected } from "@/components/not-connected"
@@ -69,8 +69,8 @@ export function AddRoom({ state, existingNames }: { state: AustralianState | nul
       }}
     >
       <SheetTrigger asChild>
-        <Button>
-          <PlusIcon />
+        <Button variant="outline">
+          <HousePlusIcon />
           Add room
         </Button>
       </SheetTrigger>
