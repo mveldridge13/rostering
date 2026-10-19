@@ -1,4 +1,4 @@
-# Wattle Roster
+# Roster
 
 Ratio-aware rostering for early learning centres: a standalone platform with a public API so Child Care Subsidy (CCS) software and other apps can integrate.
 
