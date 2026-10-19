@@ -1,10 +1,12 @@
 // Core domain model for the rostering engine. These shapes are the contract
-// the UI is built against; a real API / CCS sync layer will produce them later.
+// between backend and frontend. The `as const` value lists are the single
+// source of truth for allowed values; the database enums are built from them.
 
 export type IsoDate = string // "2026-10-19"
 export type Minutes = number // minutes since midnight, e.g. 390 = 06:30
 
-export type AustralianState = "NSW" | "VIC" | "QLD" | "WA" | "SA" | "TAS" | "ACT" | "NT"
+export const AUSTRALIAN_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"] as const
+export type AustralianState = (typeof AUSTRALIAN_STATES)[number]
 
 export interface Centre {
   id: string
@@ -16,9 +18,11 @@ export interface Centre {
   weeklyWageBudget: number
 }
 
-export type AgeGroup = "0-24m" | "24-36m" | "36m-preschool" | "school-age"
+export const AGE_GROUPS = ["0-24m", "24-36m", "36m-preschool", "school-age"] as const
+export type AgeGroup = (typeof AGE_GROUPS)[number]
 
-export type RoomTheme = "nursery" | "toddler" | "preschool" | "kindy"
+export const ROOM_THEMES = ["nursery", "toddler", "preschool", "kindy"] as const
+export type RoomTheme = (typeof ROOM_THEMES)[number]
 
 export interface Room {
   id: string
@@ -31,23 +35,21 @@ export interface Room {
   theme: RoomTheme
 }
 
-export type EducatorRole =
-  | "Centre Director"
-  | "Early Childhood Teacher"
-  | "Diploma Educator"
-  | "Certificate III Educator"
-  | "Working Towards"
-  | "Cook"
+export const EDUCATOR_ROLES = [
+  "Centre Director",
+  "Early Childhood Teacher",
+  "Diploma Educator",
+  "Certificate III Educator",
+  "Working Towards",
+  "Cook",
+] as const
+export type EducatorRole = (typeof EDUCATOR_ROLES)[number]
 
-export type EmploymentType = "Full-time" | "Part-time" | "Casual"
+export const EMPLOYMENT_TYPES = ["Full-time", "Part-time", "Casual"] as const
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number]
 
-export type CredentialType =
-  | "WWCC"
-  | "First Aid"
-  | "CPR"
-  | "Anaphylaxis"
-  | "Asthma"
-  | "Child Protection"
+export const CREDENTIAL_TYPES = ["WWCC", "First Aid", "CPR", "Anaphylaxis", "Asthma", "Child Protection"] as const
+export type CredentialType = (typeof CREDENTIAL_TYPES)[number]
 
 export interface Credential {
   type: CredentialType
@@ -68,9 +70,11 @@ export interface Educator {
   countsInRatio: boolean
 }
 
-export type ShiftTag = "Opener" | "Closer" | "Responsible Person" | "Float"
+export const SHIFT_TAGS = ["Opener", "Closer", "Responsible Person", "Float"] as const
+export type ShiftTag = (typeof SHIFT_TAGS)[number]
 
-export type ShiftStatus = "draft" | "published"
+export const SHIFT_STATUSES = ["draft", "published"] as const
+export type ShiftStatus = (typeof SHIFT_STATUSES)[number]
 
 export interface Shift {
   id: string
@@ -94,7 +98,8 @@ export interface OpenShift {
   reason: string
 }
 
-export type LeaveType = "Annual" | "Personal" | "Study" | "Unavailable"
+export const LEAVE_TYPES = ["Annual", "Personal", "Study", "Unavailable"] as const
+export type LeaveType = (typeof LEAVE_TYPES)[number]
 
 export interface Leave {
   educatorId: string
