@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { AddRoom } from "@/components/add-room"
 import { NotConnectedNotice } from "@/components/not-connected"
 import { ageGroupLabel, EducatorAvatar, PageHeader, RoomDot, roomThemeClasses } from "@/components/roster/primitives"
 import { AvatarGroup } from "@/components/ui/avatar"
@@ -12,14 +13,21 @@ import { cn } from "@/lib/utils"
 export const metadata: Metadata = { title: "Rooms" }
 
 export default async function RoomsPage() {
-  const { rooms, educators, days } = await getRosterWeek(weekStartOf(await getToday()))
+  const { centre, rooms, educators, days } = await getRosterWeek(weekStartOf(await getToday()))
   const attendance = await getAttendanceForDays(days)
   const peakByDay = days.map((d) => attendance[d])
 
   return (
     <>
-      <PageHeader title="Rooms" description="Age groups, ratios and this week's bookings" />
-      <NotConnectedNotice reads={["Rooms", "Staff (usual room)", "Bookings for the week"]} />
+      <PageHeader
+        title="Rooms"
+        description="Age groups, ratios and this week's bookings"
+        actions={<AddRoom state={centre?.state ?? null} existingNames={rooms.map((r) => r.name)} />}
+      />
+      <NotConnectedNotice
+        reads={["Centre's state (sets the ratio)", "Rooms", "Staff (usual room)", "Bookings for the week"]}
+        saves={["Add room"]}
+      />
       <div className="grid gap-4 px-4 pt-4 pb-8 md:grid-cols-2 md:px-8">
         {rooms.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground md:col-span-2">No rooms to show.</p>}
         {rooms.map((room) => {

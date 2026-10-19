@@ -9,7 +9,9 @@
     "./types": "./src/types.ts",
     "./time": "./src/time.ts",
     "./compliance": "./src/compliance.ts",
-    "./educator": "./src/educator.ts"
+    "./educator": "./src/educator.ts",
+    "./room": "./src/room.ts",
+    "./ratios": "./src/ratios.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
