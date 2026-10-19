@@ -1,0 +1,24 @@
+{
+  "name": "@rostering/domain",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure rostering rules shared by the backend (authority) and frontend (live preview). No I/O.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./time": "./src/time.ts",
+    "./compliance": "./src/compliance.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "date-fns": "^4.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}
