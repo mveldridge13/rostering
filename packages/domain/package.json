@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./types": "./src/types.ts",
     "./time": "./src/time.ts",
-    "./compliance": "./src/compliance.ts"
+    "./compliance": "./src/compliance.ts",
+    "./educator": "./src/educator.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

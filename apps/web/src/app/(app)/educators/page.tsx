@@ -1,10 +1,8 @@
 import type { Metadata } from "next"
-import { UserPlusIcon } from "lucide-react"
-
+import { AddEducator } from "@/components/add-educator"
 import { EducatorsTable } from "@/components/educators-table"
 import { NotConnectedNotice } from "@/components/not-connected"
 import { PageHeader } from "@/components/roster/primitives"
-import { Button } from "@/components/ui/button"
 import { getRosterWeek, getToday } from "@/lib/api"
 import { paidHours } from "@rostering/domain/compliance"
 import { weekStartOf } from "@rostering/domain/time"
@@ -22,12 +20,7 @@ export default async function EducatorsPage() {
       <PageHeader
         title="Educators"
         description={`${educators.length} staff`}
-        actions={
-          <Button variant="outline">
-            <UserPlusIcon />
-            Add educator
-          </Button>
-        }
+        actions={<AddEducator rooms={rooms} today={now} />}
       />
       <NotConnectedNotice
         reads={["Staff", "Credentials", "Rooms", "This week's shifts (hours worked)"]}
