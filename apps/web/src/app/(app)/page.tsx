@@ -13,6 +13,7 @@ import {
   UserRoundXIcon,
 } from "lucide-react"
 
+import { NotConnectedNotice } from "@/components/not-connected"
 import { CoverageStrip } from "@/components/roster/coverage-strip"
 import { PageHeader, RoomDot, StatTile } from "@/components/roster/primitives"
 import { Button } from "@/components/ui/button"
@@ -106,6 +107,8 @@ export default async function TodayPage() {
       href: `/roster?week=${nextWeek.days[0]}`,
     })
   }
+  const budget = centre?.weeklyWageBudget ?? 0
+  const hasRooms = coverage.length > 0
   const toneOrder = { breach: 0, warn: 1, info: 2 }
   attention.sort((a, b) => toneOrder[a.tone] - toneOrder[b.tone])
 
@@ -113,7 +116,7 @@ export default async function TodayPage() {
     <>
       <PageHeader
         title={date === now ? "Today" : "Monday"}
-        description={`${formatDay(date, "EEEE d MMMM")} · ${centre.name}`}
+        description={[formatDay(date, "EEEE d MMMM"), centre?.name].filter(Boolean).join(" · ")}
         actions={
           <Button asChild>
             <Link href="/roster">
@@ -124,6 +127,17 @@ export default async function TodayPage() {
         }
       />
 
+      <NotConnectedNotice
+        reads={[
+          "Centre details",
+          "Rooms",
+          "Staff and credentials",
+          "Today's bookings",
+          "This week's shifts, open shifts and leave",
+          "Next week's roster status",
+        ]}
+      />
+
       <div className="flex flex-col gap-6 px-4 pt-4 pb-8 md:px-8">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile icon={SmileIcon} tint="pink" label="Children booked" value={peakChildren} hint={`Across ${coverage.length} rooms`} />
@@ -132,19 +146,19 @@ export default async function TodayPage() {
             icon={ShieldCheckIcon}
             tint="green"
             label="Ratio compliance"
-            value={`${Math.round(compliance * 100)}%`}
+            value={hasRooms ? `${Math.round(compliance * 100)}%` : "—"}
             tone={underSlots === 0 ? "default" : "breach"}
-            hint={underSlots === 0 ? "All rooms covered all day" : `${underSlots / 2}h under ratio`}
+            hint={!hasRooms ? "No rooms" : underSlots === 0 ? "All rooms covered all day" : `${underSlots / 2}h under ratio`}
           />
           <StatTile
             icon={DollarSignIcon}
             tint="peach"
             label="Wages this week"
             value={`$${(weekCost / 1000).toFixed(1)}k`}
-            tone={weekCost > centre.weeklyWageBudget ? "warn" : "default"}
-            hint={`of $${(centre.weeklyWageBudget / 1000).toFixed(1)}k budget`}
+            tone={budget > 0 && weekCost > budget ? "warn" : "default"}
+            hint={budget > 0 ? `of $${(budget / 1000).toFixed(1)}k budget` : "No budget set"}
           >
-            <Progress value={Math.min(100, (weekCost / centre.weeklyWageBudget) * 100)} className="mt-2 h-1.5" />
+            <Progress value={budget > 0 ? Math.min(100, (weekCost / budget) * 100) : 0} className="mt-2 h-1.5" />
           </StatTile>
         </div>
 
@@ -163,6 +177,7 @@ export default async function TodayPage() {
               </CardAction>
             </CardHeader>
             <CardContent className="flex flex-col divide-y">
+              {!hasRooms && <p className="py-6 text-center text-sm text-muted-foreground">No rooms to show.</p>}
               {coverage.map(({ room, slots, summary, shifts }) => (
                 <div key={room.id} className="grid gap-3 py-4 first:pt-0 last:pb-0 sm:grid-cols-[11rem_minmax(0,1fr)] sm:items-center">
                   <div>
@@ -187,9 +202,9 @@ export default async function TodayPage() {
                   <div>
                     <CoverageStrip slots={slots} capacity={room.licensedPlaces} height="h-10" />
                     <div className="mt-1 flex justify-between text-[0.65rem] text-muted-foreground">
-                      <span>{formatMinutes(centre.opensAt)}</span>
+                      <span>{centre && formatMinutes(centre.opensAt)}</span>
                       <span>12pm</span>
-                      <span>{formatMinutes(centre.closesAt)}</span>
+                      <span>{centre && formatMinutes(centre.closesAt)}</span>
                     </div>
                   </div>
                 </div>
@@ -201,11 +216,11 @@ export default async function TodayPage() {
             <CardHeader>
               <CardTitle>Needs attention</CardTitle>
               <CardDescription>
-                {attention.length === 0 ? "You're all set" : `${attention.length} items across this week`}
+                {!hasRooms ? "Nothing to check yet" : attention.length === 0 ? "You're all set" : `${attention.length} items across this week`}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-1 px-2">
-              {attention.length === 0 && (
+              {hasRooms && attention.length === 0 && (
                 <div className="flex flex-col items-center gap-2 py-8 text-center text-sm text-muted-foreground">
                   <CircleCheckIcon className="size-6 text-ok" />
                   Ratios covered, credentials current, roster published.

@@ -3,6 +3,7 @@
 import { BellIcon, ChevronDownIcon, MoonIcon, SunIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 
+import { NotConnected } from "@/components/not-connected"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -35,9 +36,9 @@ export function SiteHeader() {
         </Button>
         <Button variant="ghost" size="icon" aria-label="Notifications" className="relative text-muted-foreground">
           <BellIcon />
-          <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-breach ring-2 ring-background" />
         </Button>
 
+        <NotConnected needs="sign-in (auth). The user shown here is a placeholder." className="ml-2 hidden sm:inline-flex" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="ml-2 h-11 gap-3 rounded-full pr-3 pl-1">

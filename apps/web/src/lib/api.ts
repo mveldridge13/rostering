@@ -1,20 +1,14 @@
-// Data access boundary for the UI. Everything here is async so pages are
-// already shaped for the real rostering engine API; today it reads mock data.
+// Data access boundary for the UI. Every screen reads through here and
+// nothing else, so connecting the backend means changing only this file.
+//
+// NOT CONNECTED YET: there is no API, so every function returns empty data.
+// Each will call the backend API through the typed client once it exists.
 
 import { connection } from "next/server"
 
-import { roomCoverage, summariseCoverage } from "@rostering/domain/compliance"
-import { today, weekdaysOf, weekStartOf } from "@rostering/domain/time"
-import type { IsoDate } from "@rostering/domain/types"
-import {
-  centre,
-  educators,
-  getAttendance,
-  getLeave,
-  getOpenShifts,
-  getShifts,
-  rooms,
-} from "@/lib/mock/data"
+import type { CoverageSlot, summariseCoverage } from "@rostering/domain/compliance"
+import { today, weekdaysOf } from "@rostering/domain/time"
+import type { AttendanceForecast, Centre, Educator, IsoDate, Leave, OpenShift, Room, Shift } from "@rostering/domain/types"
 
 /** Today's date, resolved at request time rather than at build. */
 export async function getToday() {
@@ -22,52 +16,57 @@ export async function getToday() {
   return today()
 }
 
-export async function getCentre() {
-  return centre
+/** The current centre, or null when none is available. */
+export async function getCentre(): Promise<Centre | null> {
+  return null
 }
 
-export async function getRooms() {
-  return rooms
+export async function getRooms(): Promise<Room[]> {
+  return []
 }
 
-export async function getEducators() {
-  return educators
+export async function getEducators(): Promise<Educator[]> {
+  return []
 }
 
-export async function getRosterWeek(weekStart: IsoDate) {
+export interface RosterWeek {
+  centre: Centre | null
+  rooms: Room[]
+  educators: Educator[]
+  days: IsoDate[]
+  shifts: Shift[]
+  openShifts: OpenShift[]
+  leave: Leave[]
+}
+
+export async function getRosterWeek(weekStart: IsoDate): Promise<RosterWeek> {
   return {
-    centre,
-    rooms,
-    educators,
+    centre: await getCentre(),
+    rooms: await getRooms(),
+    educators: await getEducators(),
     days: weekdaysOf(weekStart),
-    shifts: getShifts(weekStart),
-    openShifts: getOpenShifts(weekStart),
-    leave: getLeave(weekStart),
+    shifts: [],
+    openShifts: [],
+    leave: [],
   }
 }
 
-/** Per-room ratio coverage for a single day. */
-export async function getDayCoverage(date: IsoDate) {
-  const weekStart = weekStartOf(date)
-  const shifts = getShifts(weekStart).filter((s) => s.date === date)
-  const attendance = getAttendance(date)
+export interface RoomDayCoverage {
+  room: Room
+  slots: CoverageSlot[]
+  summary: ReturnType<typeof summariseCoverage>
+  shifts: Shift[]
+}
 
-  return rooms.map((room) => {
-    const forecast = attendance.find((a) => a.roomId === room.id)!
-    const slots = roomCoverage(room, forecast, shifts, educators, centre.opensAt)
-    return {
-      room,
-      slots,
-      summary: summariseCoverage(slots),
-      shifts: shifts.filter((s) => s.roomId === room.id),
-    }
-  })
+/** Per-room ratio coverage for a single day. */
+export async function getDayCoverage(date: IsoDate): Promise<RoomDayCoverage[]> {
+  void date // used once connected
+  return []
 }
 
 /** Expected children per room per half hour, from CCS bookings. */
-export async function getAttendanceForDays(dates: IsoDate[]) {
-  return Object.fromEntries(dates.map((d) => [d, getAttendance(d)]))
+export async function getAttendanceForDays(dates: IsoDate[]): Promise<Record<IsoDate, AttendanceForecast[]>> {
+  return Object.fromEntries(dates.map((d) => [d, []]))
 }
 
-export type RosterWeek = Awaited<ReturnType<typeof getRosterWeek>>
-export type DayCoverage = Awaited<ReturnType<typeof getDayCoverage>>
+export type DayCoverage = RoomDayCoverage[]

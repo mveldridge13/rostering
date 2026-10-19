@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { NotConnectedNotice } from "@/components/not-connected"
 import { ageGroupLabel, EducatorAvatar, PageHeader, RoomDot, roomThemeClasses } from "@/components/roster/primitives"
 import { AvatarGroup } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +19,9 @@ export default async function RoomsPage() {
   return (
     <>
       <PageHeader title="Rooms" description="Age groups, ratios and this week's bookings" />
+      <NotConnectedNotice reads={["Rooms", "Staff (usual room)", "Bookings for the week"]} />
       <div className="grid gap-4 px-4 pt-4 pb-8 md:grid-cols-2 md:px-8">
+        {rooms.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground md:col-span-2">No rooms to show.</p>}
         {rooms.map((room) => {
           const team = educators.filter((e) => e.primaryRoomId === room.id)
           const peaks = peakByDay.map((att) => Math.max(...(att.find((a) => a.roomId === room.id)?.children ?? [0])))

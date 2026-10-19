@@ -95,8 +95,8 @@ export function AppSidebar({ rosterBadge }: { rosterBadge?: React.ReactNode }) {
           href="/settings?tab=integrations"
           className="mt-1 inline-flex items-center gap-2 text-[0.7rem] text-muted-foreground hover:text-foreground"
         >
-          <span className="size-1.5 rounded-full bg-ok" />
-          CCS synced 4 min ago
+          <span className="size-1.5 rounded-full bg-muted-foreground/40" />
+          CCS not connected
         </Link>
       </SidebarFooter>
       <SidebarRail />

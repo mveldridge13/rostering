@@ -2,7 +2,7 @@
 
 Ratio-aware rostering for early learning centres: a standalone platform with a public API so Child Care Subsidy (CCS) software and other apps can integrate.
 
-The database is in place. The UI still reads mock data until the API is built.
+The database is in place. The UI is not connected to it yet, so screens are empty until the API is built (demo data lives in the database seed).
 
 ```bash
 pnpm install
@@ -42,7 +42,7 @@ Inside `apps/web`:
 
 | Path | What it is |
 | --- | --- |
-| `src/lib/api.ts` | The only place pages get data from. It will switch from mock data to the typed API client. |
-| `src/lib/mock/data.ts` | Temporary sample data, now also in the database seed (`packages/db/src/seed.ts`). Removed once the UI reads from the API. |
+| `src/lib/api.ts` | The only place pages get data from. Returns empty data until it calls the API. |
+| `src/components/not-connected.tsx` | Temporary "Not connected" markers showing what each screen still needs from the backend. Remove each as it is wired up. |
 | `src/app/(app)/` | Screens: Today, Week roster, Day & ratios, Team, Rooms, Settings. |
 | `src/components/roster/` | Roster UI: week grid, shift editor sheet, room timeline, coverage strip. |

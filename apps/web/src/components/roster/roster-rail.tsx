@@ -62,7 +62,8 @@ export function RosterRail({
   leave: Leave[]
   gaps: { roomName: string; date: IsoDate; hours: number }[]
   cost: number
-  budget: number
+  /** Null when the centre has no wage budget to check against. */
+  budget: number | null
   rooms: Room[]
   today: IsoDate
 }) {
@@ -100,35 +101,42 @@ export function RosterRail({
       ),
     })
   }
-  checks.push(
-    expired.length > 0
-      ? { id: "creds", tone: "breach", icon: UserRoundXIcon, title: "Expired credentials on roster", lines: expired }
-      : { id: "creds", tone: "ok", title: "All qualifications are valid" },
-  )
-  checks.push(
-    gaps.length > 0
-      ? {
-          id: "ratios",
-          tone: "breach",
-          icon: TriangleAlertIcon,
-          title: "Ratios not met",
-          lines: gaps.map((g) => `${g.roomName} · ${formatDay(g.date, "EEE")} (${g.hours}h short)`),
-        }
-      : { id: "ratios", tone: "ok", title: "Staffing ratios are compliant" },
-  )
-  checks.push(
-    cost <= budget
-      ? { id: "cost", tone: "ok", title: "Estimated cost is within budget" }
-      : {
-          id: "cost",
-          tone: "warn",
-          icon: TriangleAlertIcon,
-          title: "Over wage budget",
-          lines: [`$${Math.round(cost - budget).toLocaleString("en-AU")} over $${budget.toLocaleString("en-AU")}`],
-        },
-  )
+  // Credential, ratio and cost checks only mean something once there are shifts.
+  const rostered = shifts.length > 0
+  if (rostered) {
+    checks.push(
+      expired.length > 0
+        ? { id: "creds", tone: "breach", icon: UserRoundXIcon, title: "Expired credentials on roster", lines: expired }
+        : { id: "creds", tone: "ok", title: "All qualifications are valid" },
+    )
+    checks.push(
+      gaps.length > 0
+        ? {
+            id: "ratios",
+            tone: "breach",
+            icon: TriangleAlertIcon,
+            title: "Ratios not met",
+            lines: gaps.map((g) => `${g.roomName} · ${formatDay(g.date, "EEE")} (${g.hours}h short)`),
+          }
+        : { id: "ratios", tone: "ok", title: "Staffing ratios are compliant" },
+    )
+  }
+  if (rostered && budget !== null) {
+    checks.push(
+      cost <= budget
+        ? { id: "cost", tone: "ok", title: "Estimated cost is within budget" }
+        : {
+            id: "cost",
+            tone: "warn",
+            icon: TriangleAlertIcon,
+            title: "Over wage budget",
+            lines: [`$${Math.round(cost - budget).toLocaleString("en-AU")} over $${budget.toLocaleString("en-AU")}`],
+          },
+    )
+  }
 
-  const allClear = checks.every((c) => c.tone === "ok")
+  // An empty roster passes every check, but that is nothing to celebrate.
+  const allClear = shifts.length > 0 && checks.every((c) => c.tone === "ok")
 
   return (
     <aside className="flex flex-col gap-4">
@@ -138,14 +146,18 @@ export function RosterRail({
           <span className="flex size-8 items-center justify-center rounded-full bg-card text-primary shadow-xs">
             {isPublished ? <CalendarCheckIcon className="size-4" /> : <SparklesIcon className="size-4" />}
           </span>
-          <div className="font-semibold text-accent-foreground">{isPublished ? "Roster published" : "Draft ready to review"}</div>
+          <div className="font-semibold text-accent-foreground">
+            {isPublished ? "Roster published" : shifts.length === 0 ? "No shifts yet" : "Draft ready to review"}
+          </div>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
           {isPublished
             ? "Educators can see their shifts for this week in the app."
-            : "Educators can't see this week yet. Check the alerts, then publish to notify everyone."}
+            : shifts.length === 0
+              ? "Add shifts to start this week's roster."
+              : "Educators can't see this week yet. Check the alerts, then publish to notify everyone."}
         </p>
-        {isPublished ? (
+        {shifts.length === 0 ? null : isPublished ? (
           <Button asChild variant="outline" className="mt-3 w-full rounded-xl bg-card">
             <Link href="/roster/day">View day & ratios</Link>
           </Button>
@@ -165,6 +177,7 @@ export function RosterRail({
             View all
           </Link>
         </div>
+        {checks.length === 0 && <p className="text-sm text-muted-foreground">Nothing to check yet.</p>}
         <ul className="flex flex-col gap-3.5">
           {checks.map((check) => (
             <li key={check.id} className="flex gap-3">

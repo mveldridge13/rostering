@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { ChevronLeftIcon, ChevronRightIcon, ClockAlertIcon, ShieldCheckIcon, SmileIcon, UsersIcon } from "lucide-react"
 
+import { NotConnectedNotice } from "@/components/not-connected"
 import { CoverageLegend } from "@/components/roster/coverage-strip"
 import { PageHeader, StatTile } from "@/components/roster/primitives"
 import { RoomTimeline } from "@/components/roster/room-timeline"
@@ -41,7 +42,7 @@ export default async function DayPage({ searchParams }: PageProps<"/roster/day">
     <>
       <PageHeader
         title="Day & ratios"
-        description={`${formatDay(date, "EEEE d MMMM yyyy")} · Open ${formatTimeRange(centre.opensAt, centre.closesAt)}`}
+        description={[formatDay(date, "EEEE d MMMM yyyy"), centre && `Open ${formatTimeRange(centre.opensAt, centre.closesAt)}`].filter(Boolean).join(" · ")}
         actions={<RosterViewSwitch value="day" />}
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -74,6 +75,10 @@ export default async function DayPage({ searchParams }: PageProps<"/roster/day">
         </div>
       </PageHeader>
 
+      <NotConnectedNotice
+        reads={["Centre opening hours", "Rooms", "Staff", "Bookings for the day", "Shifts and open shifts for the day"]}
+      />
+
       <div className="flex flex-col gap-6 px-4 pt-4 pb-8 md:px-8">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile icon={SmileIcon} tint="pink" label="Children booked" value={peakChildren} hint="from CCS bookings" />
@@ -88,9 +93,11 @@ export default async function DayPage({ searchParams }: PageProps<"/roster/day">
             icon={ShieldCheckIcon}
             tint="green"
             label="Ratio compliance"
-            value={`${Math.round(compliance * 100)}%`}
+            value={coverage.length > 0 ? `${Math.round(compliance * 100)}%` : "—"}
             tone={underSlots === 0 ? "default" : "breach"}
-            hint={underSlots === 0 ? "Every room, all day" : `${underSlots / 2}h under ratio across rooms`}
+            hint={
+              coverage.length === 0 ? "No rooms" : underSlots === 0 ? "Every room, all day" : `${underSlots / 2}h under ratio across rooms`
+            }
           />
           <StatTile
             icon={ClockAlertIcon}
@@ -107,7 +114,9 @@ export default async function DayPage({ searchParams }: PageProps<"/roster/day">
           <CoverageLegend />
         </div>
 
-        {coverage.map((c) => (
+        {coverage.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">No rooms to show.</p>}
+
+        {centre && coverage.map((c) => (
           <RoomTimeline
             key={c.room.id}
             room={c.room}
@@ -121,7 +130,7 @@ export default async function DayPage({ searchParams }: PageProps<"/roster/day">
           />
         ))}
 
-        {supportShifts.length > 0 && (
+        {centre && supportShifts.length > 0 && (
           <RoomTimeline
             shifts={supportShifts}
             educators={educators}

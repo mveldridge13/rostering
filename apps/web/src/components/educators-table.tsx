@@ -76,7 +76,7 @@ export function EducatorsTable({
             {filtered.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                  No educators match that search.
+                  {educators.length === 0 ? "No educators to show." : "No educators match that search."}
                 </TableCell>
               </TableRow>
             )}

@@ -15,6 +15,7 @@ import {
   UsersIcon,
 } from "lucide-react"
 
+import { NotConnected, NotConnectedNotice } from "@/components/not-connected"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { RosterWeek } from "@/lib/api"
@@ -44,6 +45,7 @@ export function RosterWorkspace({
   const [shifts, setShifts] = useState(week.shifts)
   const [openShifts, setOpenShifts] = useState(week.openShifts)
   const [editor, setEditor] = useState<ShiftEditorState | null>(null)
+  const opensAt = centre?.opensAt ?? 0
 
   const isPublished = shifts.length > 0 && shifts.every((s) => s.status === "published")
 
@@ -59,7 +61,7 @@ export function RosterWorkspace({
         const forecast = attendance[date]?.find((a) => a.roomId === room.id)
         if (!forecast) continue
         const summary = summariseCoverage(
-          roomCoverage(room, forecast, shifts.filter((s) => s.date === date), educators, centre.opensAt),
+          roomCoverage(room, forecast, shifts.filter((s) => s.date === date), educators, opensAt),
         )
         const hoursUnder = summary.underSlots * (forecast.slotMinutes / 60)
         stats[room.id][date] = { peakChildren: summary.peakChildren, hoursUnder }
@@ -69,7 +71,7 @@ export function RosterWorkspace({
       }
     }
     return { roomStats: stats, activeSlots: active, underSlots: under, gaps: gapList }
-  }, [rooms, days, attendance, shifts, educators, centre.opensAt])
+  }, [rooms, days, attendance, shifts, educators, opensAt])
 
   const educatorById = new Map(educators.map((e) => [e.id, e]))
   const cost = shifts.reduce((sum, s) => sum + shiftCost(s, educatorById.get(s.educatorId)!), 0)
@@ -129,14 +131,11 @@ export function RosterWorkspace({
         actions={
           <>
             <RosterViewSwitch value="week" />
-            <Select defaultValue="marrickville">
+            <Select value={centre?.id} disabled={!centre}>
               <SelectTrigger className="h-9 w-56 rounded-xl bg-card" aria-label="Centre">
-                <SelectValue />
+                <SelectValue placeholder="No centre" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="marrickville">{centre.name}</SelectItem>
-                <SelectItem value="ashfield">Little Wattles Ashfield</SelectItem>
-              </SelectContent>
+              <SelectContent>{centre && <SelectItem value={centre.id}>{centre.name}</SelectItem>}</SelectContent>
             </Select>
             <Button variant="outline" className="h-9 rounded-xl bg-card">
               <CopyIcon />
@@ -145,13 +144,26 @@ export function RosterWorkspace({
             <Button className="h-9 rounded-xl bg-room-preschool-soft text-room-preschool-ink hover:bg-room-preschool-soft/70">
               <SparklesIcon />
               Auto-fill
+              <NotConnected needs="the auto-fill engine (not built yet)" />
             </Button>
-            <Button className="h-9 rounded-xl px-5 shadow-sm" disabled={isPublished} onClick={publish}>
+            <Button className="h-9 rounded-xl px-5 shadow-sm" disabled={isPublished || shifts.length === 0} onClick={publish}>
               {isPublished ? <CircleCheckIcon /> : <SendIcon />}
               {isPublished ? "Published" : "Publish"}
             </Button>
           </>
         }
+      />
+
+      <NotConnectedNotice
+        reads={[
+          "Centre details and wage budget",
+          "Rooms",
+          "Staff and credentials",
+          "Shifts, open shifts and leave for the week",
+          "Last week's shifts (for cost comparison)",
+          "Bookings for the week",
+        ]}
+        saves={["Add shift", "Edit shift", "Remove shift", "Fill open shift", "Publish roster", "Copy last week"]}
       />
 
       <div className="grid gap-6 px-4 pt-4 pb-8 md:px-8 xl:grid-cols-[minmax(0,1fr)_19rem]">
@@ -169,16 +181,24 @@ export function RosterWorkspace({
                   <span className="font-semibold text-warn-foreground">{openShifts.length} open shifts</span>
                 )
               }
-              status={openShifts.length === 0 ? <CircleCheckIcon className="size-5 fill-ok text-card" /> : undefined}
+              status={
+                educators.length > 0 && openShifts.length === 0 ? <CircleCheckIcon className="size-5 fill-ok text-card" /> : undefined
+              }
             />
             <StatTile icon={SmileIcon} tint="pink" label="Children / day" value={avgChildren} hint={`across ${rooms.length} rooms`} />
             <StatTile
               icon={ShieldCheckIcon}
               tint="green"
               label="Ratio compliance"
-              value={`${Math.round(compliance * 100)}%`}
+              value={rooms.length > 0 ? `${Math.round(compliance * 100)}%` : "—"}
               tone={underSlots === 0 ? "default" : "breach"}
-              hint={underSlots === 0 ? "all rooms covered" : `${gaps.length} ${gaps.length === 1 ? "gap" : "gaps"} to fix`}
+              hint={
+                rooms.length === 0
+                  ? "no rooms"
+                  : underSlots === 0
+                    ? "all rooms covered"
+                    : `${gaps.length} ${gaps.length === 1 ? "gap" : "gaps"} to fix`
+              }
             />
             <StatTile
               icon={DollarSignIcon}
@@ -186,9 +206,13 @@ export function RosterWorkspace({
               label="Labour cost"
               value={`$${Math.round(cost).toLocaleString("en-AU")}`}
               hint={
-                <span className={costDelta > 0 ? "text-warn-foreground" : "text-ok-foreground"}>
-                  {costDelta > 0 ? "↑" : "↓"} {Math.abs(costDelta * 100).toFixed(0)}% vs last wk
-                </span>
+                lastWeekCost === 0 ? (
+                  "no previous week"
+                ) : (
+                  <span className={costDelta > 0 ? "text-warn-foreground" : "text-ok-foreground"}>
+                    {costDelta > 0 ? "↑" : "↓"} {Math.abs(costDelta * 100).toFixed(0)}% vs last wk
+                  </span>
+                )
               }
             />
           </div>
@@ -215,7 +239,7 @@ export function RosterWorkspace({
           leave={leave}
           gaps={gaps}
           cost={cost}
-          budget={centre.weeklyWageBudget}
+          budget={centre?.weeklyWageBudget ?? null}
           rooms={rooms}
           today={today}
         />

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { UserPlusIcon } from "lucide-react"
 
 import { EducatorsTable } from "@/components/educators-table"
+import { NotConnectedNotice } from "@/components/not-connected"
 import { PageHeader } from "@/components/roster/primitives"
 import { Button } from "@/components/ui/button"
 import { getRosterWeek, getToday } from "@/lib/api"
@@ -20,13 +21,17 @@ export default async function EducatorsPage() {
     <>
       <PageHeader
         title="Educators"
-        description={`${educators.length} staff · synced from your CCS software`}
+        description={`${educators.length} staff`}
         actions={
           <Button variant="outline">
             <UserPlusIcon />
             Add educator
           </Button>
         }
+      />
+      <NotConnectedNotice
+        reads={["Staff", "Credentials", "Rooms", "This week's shifts (hours worked)"]}
+        saves={["Add educator"]}
       />
       <div className="px-4 pt-4 pb-8 md:px-8">
         <EducatorsTable educators={educators} rooms={rooms} hoursThisWeek={hoursThisWeek} today={now} />

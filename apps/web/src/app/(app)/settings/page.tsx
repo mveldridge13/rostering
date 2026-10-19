@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { ArrowDownToLineIcon, ArrowUpFromLineIcon, CheckIcon, CircleIcon } from "lucide-react"
 
+import { NotConnected, NotConnectedNotice } from "@/components/not-connected"
 import { ageGroupLabel, PageHeader, RoomLabel } from "@/components/roster/primitives"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,7 +33,11 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
 
   return (
     <>
-      <PageHeader title="Settings" description={centre.name} />
+      <PageHeader title="Settings" description={centre?.name} />
+      <NotConnectedNotice
+        reads={["Centre details", "Rooms and ratios", "CCS connection status"]}
+        saves={["Centre details", "Sync now"]}
+      />
       <div className="px-4 pt-4 pb-8 md:px-8">
         <Tabs defaultValue={typeof tab === "string" ? tab : "centre"} className="gap-6">
           <TabsList>
@@ -48,12 +53,17 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
                 <CardDescription>Used for ratio rules and roster headers.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2">
-                <Field id="name" label="Service name" defaultValue={centre.name} className="sm:col-span-2" />
-                <Field id="san" label="Service approval number" defaultValue={centre.serviceApprovalNumber} mono />
-                <Field id="state" label="State or territory" defaultValue={centre.state} />
-                <Field id="opens" label="Opens" defaultValue={formatMinutes(centre.opensAt)} />
-                <Field id="closes" label="Closes" defaultValue={formatMinutes(centre.closesAt)} />
-                <Field id="budget" label="Weekly wage budget" defaultValue={`$${centre.weeklyWageBudget.toLocaleString("en-AU")}`} mono />
+                <Field id="name" label="Service name" defaultValue={centre?.name ?? ""} className="sm:col-span-2" />
+                <Field id="san" label="Service approval number" defaultValue={centre?.serviceApprovalNumber ?? ""} mono />
+                <Field id="state" label="State or territory" defaultValue={centre?.state ?? ""} />
+                <Field id="opens" label="Opens" defaultValue={centre ? formatMinutes(centre.opensAt) : ""} />
+                <Field id="closes" label="Closes" defaultValue={centre ? formatMinutes(centre.closesAt) : ""} />
+                <Field
+                  id="budget"
+                  label="Weekly wage budget"
+                  defaultValue={centre ? `$${centre.weeklyWageBudget.toLocaleString("en-AU")}` : ""}
+                  mono
+                />
               </CardContent>
               <CardFooter className="justify-end border-t">
                 <Button>Save changes</Button>
@@ -68,11 +78,12 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
                 <CardDescription>
                   Your Child Care Subsidy management system is the source of truth for children, bookings and staff.
                 </CardDescription>
-                <CardAction>
+                <CardAction className="flex items-center gap-2">
                   <Badge variant="outline" className="border-ok/30 bg-ok/10 text-ok-foreground">
                     <CircleIcon className="fill-current" />
                     Connected
                   </Badge>
+                  <NotConnected needs="a CCS connector (not built yet). This status is hard-coded." />
                 </CardAction>
               </CardHeader>
               <CardContent className="grid gap-6 md:grid-cols-2">
@@ -80,7 +91,10 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
                 <SyncList title="We send back" icon={<ArrowUpFromLineIcon />} items={outbound} />
               </CardContent>
               <CardFooter className="justify-between border-t text-xs text-muted-foreground">
-                Last synced 4 minutes ago · 61 children, 20 educators
+                <span className="flex items-center gap-2">
+                  Last synced 4 minutes ago · 61 children, 20 educators
+                  <NotConnected needs="a CCS connector (not built yet). These figures are hard-coded." />
+                </span>
                 <Button variant="outline" size="sm">
                   Sync now
                 </Button>
@@ -98,11 +112,12 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
                 <pre className="overflow-x-auto rounded-lg bg-muted p-4 font-mono text-xs leading-relaxed">
 {`<script src="https://embed.wattleroster.app/v1.js"></script>
 <wattle-roster
-  centre="${centre.serviceApprovalNumber}"
+  centre="${centre?.serviceApprovalNumber ?? "SE-00000000"}"
   view="week"
   token="{{ session_token }}">
 </wattle-roster>`}
                 </pre>
+                <NotConnected needs="API keys and the embeddable component (Phase 4). The values below are placeholders." className="self-start" />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field id="client" label="Client ID" defaultValue="wr_live_7f3a91c2" mono readOnly />
                   <Field id="webhook" label="Webhook endpoint" defaultValue="https://api.wattleroster.app/hooks/ccs" mono readOnly />
@@ -115,7 +130,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
             <Card>
               <CardHeader>
                 <CardTitle>Educator-to-child ratios</CardTitle>
-                <CardDescription>National Quality Framework ratios for {centre.state}. Applied per room, per half hour.</CardDescription>
+                <CardDescription>National Quality Framework ratios{centre && ` for ${centre.state}`}. Applied per room, per half hour.</CardDescription>
               </CardHeader>
               <CardContent className="px-0">
                 <Table>
